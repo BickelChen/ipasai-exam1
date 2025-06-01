@@ -501,7 +501,7 @@
             try {
                 // 先嘗試從上傳的文件讀取
                 try {
-                    const fileData = await window.fs.readFile('question.cvs', { encoding: 'utf8' });
+                    const fileData = await window.fs.readFile('question.csv', { encoding: 'utf8' });
                     parseCSV(fileData);
                 } catch (error) {
                     // 如果沒有上傳文件，使用示例數據
