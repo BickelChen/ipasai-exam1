@@ -1,4 +1,4 @@
-﻿id,subject,topic_code,topic_name,question,optionA,optionB,optionC,optionD,answer,explanation,difficulty,tags
+id,subject,topic_code,topic_name,question,optionA,optionB,optionC,optionD,answer,explanation,difficulty,tags
 L11101-Q001,L11,L11101,AI的定義與分類,以下哪一項最能描述「人工智慧（AI）」的核心目標？,僅執行硬體驅動程式,提供靜態資料儲存空間,讓機器具備自主學習與推理能力,壓縮影音檔案體積,C,AI 的宗旨是使系統能在未知情境中自行學習並做出推論與決策。,1,"[""AI 定義"", ""自主學習""]"
 L11101-Q002,L11,L11101,AI的定義與分類,『弱 AI（Weak AI）』又常被稱為？,超人工智慧（ASI）,強 AI（Strong AI）,通用 AI（AGI）,窄域 AI（Narrow AI）,D,弱 / 窄域 AI 針對單一領域或任務運作，與能跨領域推理的通用 AI 相對。,1,"[""弱 AI"", ""窄域 AI""]"
 L11101-Q003,L11,L11101,AI的定義與分類,提出『圖靈測試（Turing Test）』以檢驗機器是否具備智能的科學家是？,艾倫‧圖靈（Alan Turing）,馬文‧明斯基（Marvin Minsky）,傑弗瑞‧辛頓（Geoffrey Hinton）,安德魯‧恩（Andrew Ng）,A,艾倫‧圖靈於 1950 年提出用模擬對話判別機器是否能展現與人類無異的智能行為。,1,"[""圖靈測試"", ""歷史""]"
