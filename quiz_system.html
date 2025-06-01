@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IPAS AI 測驗系統-輝哥AI創作</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 15px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .control-group label {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        select, input {
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 10px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(45deg, #56ccf2, #2f80ed);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(86, 204, 242, 0.4);
+        }
+
+        .quiz-container {
+            display: none;
+        }
+
+        .question-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border-left: 5px solid #667eea;
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .question-number {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+
+        .question-text {
+            font-size: 18px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .options {
+            display: grid;
+            gap: 10px;
+        }
+
+        .option {
+            padding: 15px;
+            border: 2px solid #eee;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .option:hover {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .option.selected {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: #eee;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .quiz-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-weight: bold;
+            color: #666;
+        }
+
+        .result-container {
+            display: none;
+            text-align: center;
+        }
+
+        .score-display {
+            font-size: 3em;
+            font-weight: bold;
+            margin: 20px 0;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .result-details {
+            margin-top: 30px;
+        }
+
+        .result-question {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            text-align: left;
+            border-left: 5px solid #ddd;
+        }
+
+        .result-question.correct {
+            border-left-color: #4caf50;
+            background: rgba(76, 175, 80, 0.05);
+        }
+
+        .result-question.incorrect {
+            border-left-color: #f44336;
+            background: rgba(244, 67, 54, 0.05);
+        }
+
+        .result-status {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .correct-answer {
+            color: #4caf50;
+            font-weight: bold;
+        }
+
+        .incorrect-answer {
+            color: #f44336;
+            font-weight: bold;
+        }
+
+        .explanation {
+            background: rgba(102, 126, 234, 0.05);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            border-left: 3px solid #667eea;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 18px;
+            color: #666;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .controls {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧠 AI 測驗系統</h1>
+            <p>測試您的人工智慧知識</p>
+        </div>
+
+        <div id="setup-container">
+            <div class="controls">
+                <div class="control-group">
+                    <label for="subject-select">選擇科目:</label>
+                    <select id="subject-select">
+                        <option value="">所有科目</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label for="topic-select">選擇單元:</label>
+                    <select id="topic-select">
+                        <option value="">所有單元</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label for="difficulty-select">選擇難度:</label>
+                    <select id="difficulty-select">
+                        <option value="">所有難度</option>
+                        <option value="1">簡單 (1)</option>
+                        <option value="2">中等 (2)</option>
+                        <option value="3">困難 (3)</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label for="question-count">題目數量:</label>
+                    <select id="question-count">
+                        <option value="10">10 題</option>
+                        <option value="20">20 題</option>
+                        <option value="25">25 題</option>
+                        <option value="50">50 題</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="btn btn-primary" onclick="startQuiz()">開始測驗</button>
+            </div>
+        </div>
+
+        <div id="quiz-container" class="quiz-container">
+            <div class="quiz-info">
+                <span id="current-question">題目 1 / 10</span>
+                <span id="quiz-settings"></span>
+            </div>
+            
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+            
+            <div id="question-container"></div>
+            
+            <div style="text-align: center; margin-top: 30px;">
+                <button class="btn btn-success" onclick="submitquiz()" id="submit-btn" disabled>提交答案</button>
+            </div>
+        </div>
+
+        <div id="result-container" class="result-container">
+            <h2>測驗結果</h2>
+            <div class="score-display" id="score-display">0 分</div>
+            <div id="result-summary"></div>
+            <div class="result-details" id="result-details"></div>
+            <div style="margin-top: 30px;">
+                <button class="btn btn-primary" onclick="resetQuiz()">重新開始</button>
+            </div>
+        </div>
+
+        <div id="loading" class="loading" style="display: none;">
+            載入題庫中...
+        </div>
+    </div>
+
+    <script>
+        let allQuestions = [];
+        let currentQuiz = [];
+        let userAnswers = {};
+        let filteredQuestions = [];
+
+        // 載入 CSV 檔案
+        async function loadQuestions() {
+            document.getElementById('loading').style.display = 'block';
+            
+            try {
+                const fileData = await window.fs.readFile('question.csv', { encoding: 'utf8' });
+                const results = Papa.parse(fileData, {
+                    header: true,
+                    skipEmptyLines: true,
+                    dynamicTyping: true,
+                    transformHeader: header => header.trim()
+                });
+
+                allQuestions = results.data.filter(row => row.question && row.question.trim());
+                console.log('載入的題目範例:', allQuestions.slice(0, 2));
+                console.log('欄位名稱:', Object.keys(allQuestions[0] || {}));
+                
+                setupFilters();
+                document.getElementById('loading').style.display = 'none';
+                
+                console.log(`載入了 ${allQuestions.length} 道題目`);
+            } catch (error) {
+                console.error('載入題庫失敗:', error);
+                // 如果無法載入檔案，使用示例資料進行展示
+                allQuestions = [
+                    {
+                        id: "L11101-Q001",
+                        subject: "L11",
+                        topic_code: "L11101",
+                        topic_name: "AI的定義與分類",
+                        question: "以下哪一項最能描述「人工智慧（AI）」的核心目標？",
+                        optionA: "僅執行硬體驅動程式",
+                        optionB: "提供靜態資料儲存空間", 
+                        optionC: "讓機器具備自主學習與推理能力",
+                        optionD: "壓縮影音檔案體積",
+                        answer: "C",
+                        explanation: "AI 的宗旨是使系統能在未知情境中自行學習並做出推論與決策。",
+                        difficulty: 1,
+                        tags: '["AI 定義", "自主學習"]'
+                    },
+                    {
+                        id: "L11101-Q002",
+                        subject: "L11", 
+                        topic_code: "L11101",
+                        topic_name: "AI的定義與分類",
+                        question: "『弱 AI（Weak AI）』又常被稱為？",
+                        optionA: "超人工智慧（ASI）",
+                        optionB: "強 AI（Strong AI）",
+                        optionC: "通用 AI（AGI）", 
+                        optionD: "窄域 AI（Narrow AI）",
+                        answer: "D",
+                        explanation: "弱 / 窄域 AI 針對單一領域或任務運作，與能跨領域推理的通用 AI 相對。",
+                        difficulty: 1,
+                        tags: '["弱 AI", "窄域 AI"]'
+                    }
+                ];
+                setupFilters();
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('loading').innerHTML = '無法載入 question.csv 檔案，目前使用示例資料展示功能';
+                document.getElementById('loading').style.display = 'block';
+                setTimeout(() => {
+                    document.getElementById('loading').style.display = 'none';
+                }, 3000);
+            }
+        }
+
+        // 設置篩選選單
+        function setupFilters() {
+            console.log('開始設置篩選器，題目數量:', allQuestions.length);
+            
+            const subjectSelect = document.getElementById('subject-select');
+            const topicSelect = document.getElementById('topic-select');
+            
+            // 清空現有選項（保留預設選項）
+            subjectSelect.innerHTML = '<option value="">所有科目</option>';
+            topicSelect.innerHTML = '<option value="">所有單元</option>';
+            
+            // 預定義的科目選項
+            const predefinedSubjects = [
+                { code: 'L11', name: 'L11 人工智慧基礎概論' },
+                { code: 'L12', name: 'L12 生成式 AI應用與規劃' }
+            ];
+            
+            // 從實際資料中取得科目（作為備用）
+            const actualSubjects = [...new Set(allQuestions.map(q => q.subject).filter(Boolean))];
+            console.log('實際科目:', actualSubjects);
+            
+            // 優先使用預定義科目
+            predefinedSubjects.forEach(subject => {
+                const option = document.createElement('option');
+                option.value = subject.code;
+                option.textContent = subject.name;
+                subjectSelect.appendChild(option);
+            });
+            
+            // 加入資料中其他科目（如果有的話）
+            actualSubjects.forEach(subject => {
+                if (!predefinedSubjects.some(ps => ps.code === subject)) {
+                    const option = document.createElement('option');
+                    option.value = subject;
+                    option.textContent = subject;
+                    subjectSelect.appendChild(option);
+                }
+            });
+
+            // 監聽科目變更以更新單元選項
+            subjectSelect.addEventListener('change', updateTopicOptions);
+            
+            // 初始載入所有單元
+            updateTopicOptions();
+            
+            console.log('篩選器設置完成');
+        }
+
+        function updateTopicOptions() {
+            const selectedSubject = document.getElementById('subject-select').value;
+            const topicSelect = document.getElementById('topic-select');
+            
+            console.log('更新單元選項，選擇的科目:', selectedSubject);
+            
+            // 清空現有選項
+            topicSelect.innerHTML = '<option value="">所有單元</option>';
+            
+            // 預定義的單元結構
+            const predefinedTopics = {
+                'L11': [
+                    { code: 'L11101', name: 'L11101 AI的定義與分類' },
+                    { code: 'L11102', name: 'L11102 AI治理概念' },
+                    { code: 'L11201', name: 'L11201 資料基本概念與來源' },
+                    { code: 'L11202', name: 'L11202 資料整理與分析流程' },
+                    { code: 'L11203', name: 'L11203 資料隱私與安全' },
+                    { code: 'L11301', name: 'L11301 機器學習基本原理' },
+                    { code: 'L11302', name: 'L11302 常見的機器學習模型' },
+                    { code: 'L11401', name: 'L11401 鑑別式 AI與生成式 AI的基本原理' },
+                    { code: 'L11402', name: 'L11402 鑑別式 AI與生成式 AI的整合應用' }
+                ],
+                'L12': [
+                    { code: 'L12101', name: 'L12101 No Code / Low Code的基本概念' },
+                    { code: 'L12102', name: 'L12102 No Code / Low Code的優勢與限制' },
+                    { code: 'L12201', name: 'L12201 生成式 AI應用領域與常見工具' },
+                    { code: 'L12202', name: 'L12202 如何善用生成式 AI工具' },
+                    { code: 'L12301', name: 'L12301 生成式 AI導入評估' },
+                    { code: 'L12302', name: 'L12302 生成式 AI導入規劃' },
+                    { code: 'L12303', name: 'L12303 生成式 AI風險管理' }
+                ]
+            };
+            
+            let topics = [];
+            
+            if (selectedSubject && predefinedTopics[selectedSubject]) {
+                // 使用預定義的單元
+                topics = predefinedTopics[selectedSubject];
+                console.log('使用預定義單元:', topics.length);
+            } else if (selectedSubject) {
+                // 從資料中篩選對應科目的單元
+                const actualTopics = allQuestions
+                    .filter(q => q.subject === selectedSubject)
+                    .map(q => ({ code: q.topic_code, name: q.topic_name }))
+                    .filter(t => t.name);
+                
+                // 去重
+                const uniqueTopics = [];
+                const seen = new Set();
+                actualTopics.forEach(topic => {
+                    if (!seen.has(topic.code)) {
+                        seen.add(topic.code);
+                        uniqueTopics.push(topic);
+                    }
+                });
+                
+                topics = uniqueTopics;
+                console.log('從資料中找到單元:', topics.length);
+            } else {
+                // 顯示所有單元（合併預定義和實際資料）
+                const allPredefined = Object.values(predefinedTopics).flat();
+                const actualTopics = allQuestions
+                    .map(q => ({ code: q.topic_code, name: q.topic_name }))
+                    .filter(t => t.name);
+                
+                // 合併並去重
+                const topicsMap = new Map();
+                allPredefined.forEach(t => topicsMap.set(t.code, t));
+                actualTopics.forEach(t => {
+                    if (t.code && !topicsMap.has(t.code)) {
+                        topicsMap.set(t.code, t);
+                    }
+                });
+                topics = Array.from(topicsMap.values());
+                console.log('顯示所有單元:', topics.length);
+            }
+            
+            // 按照單元代碼排序
+            topics.sort((a, b) => (a.code || '').localeCompare(b.code || ''));
+            
+            topics.forEach(topic => {
+                const option = document.createElement('option');
+                option.value = topic.code;
+                option.textContent = topic.name;
+                topicSelect.appendChild(option);
+            });
+            
+            console.log('單元選項更新完成，共', topics.length, '個單元');
+        }
+
+        // 開始測驗
+        function startQuiz() {
+            const subject = document.getElementById('subject-select').value;
+            const topic = document.getElementById('topic-select').value;
+            const difficulty = document.getElementById('difficulty-select').value;
+            const questionCount = parseInt(document.getElementById('question-count').value);
+
+            // 篩選題目
+            filteredQuestions = allQuestions.filter(q => {
+                if (subject && q.subject !== subject) return false;
+                if (topic && q.topic_code !== topic) return false;
+                if (difficulty && q.difficulty != difficulty) return false;
+                return true;
+            });
+
+            if (filteredQuestions.length === 0) {
+                alert('沒有符合條件的題目，請調整篩選條件');
+                return;
+            }
+
+            if (filteredQuestions.length < questionCount) {
+                alert(`符合條件的題目只有 ${filteredQuestions.length} 道，將使用所有題目`);
+            }
+
+            // 隨機選擇題目
+            currentQuiz = shuffleArray(filteredQuestions).slice(0, Math.min(questionCount, filteredQuestions.length));
+            userAnswers = {};
+
+            // 顯示測驗設定資訊
+            let settingsText = [];
+            if (subject) {
+                const subjectNames = {
+                    'L11': 'L11 人工智慧基礎概論',
+                    'L12': 'L12 生成式 AI應用與規劃'
+                };
+                settingsText.push(`科目: ${subjectNames[subject] || subject}`);
+            }
+            if (topic) {
+                const topicName = allQuestions.find(q => q.topic_code === topic)?.topic_name || topic;
+                settingsText.push(`單元: ${topicName}`);
+            }
+            if (difficulty) settingsText.push(`難度: ${difficulty}`);
+            settingsText.push(`題數: ${currentQuiz.length}`);
+            document.getElementById('quiz-settings').textContent = settingsText.join(' | ');
+
+            // 切換介面
+            document.getElementById('setup-container').style.display = 'none';
+            document.getElementById('quiz-container').style.display = 'block';
+
+            displayQuestions();
+        }
+
+        // 顯示所有題目
+        function displayQuestions() {
+            const container = document.getElementById('question-container');
+            container.innerHTML = '';
+
+            currentQuiz.forEach((question, index) => {
+                const questionDiv = document.createElement('div');
+                questionDiv.className = 'question-card';
+                questionDiv.innerHTML = `
+                    <div class="question-header">
+                        <div class="question-number">第 ${index + 1} 題</div>
+                    </div>
+                    <div class="question-text">${question.question}</div>
+                    <div class="options">
+                        <div class="option" onclick="selectOption(${index}, 'A')" data-option="A">
+                            A. ${question.optionA}
+                        </div>
+                        <div class="option" onclick="selectOption(${index}, 'B')" data-option="B">
+                            B. ${question.optionB}
+                        </div>
+                        <div class="option" onclick="selectOption(${index}, 'C')" data-option="C">
+                            C. ${question.optionC}
+                        </div>
+                        <div class="option" onclick="selectOption(${index}, 'D')" data-option="D">
+                            D. ${question.optionD}
+                        </div>
+                    </div>
+                `;
+                container.appendChild(questionDiv);
+            });
+
+            updateDisplay();
+        }
+
+        // 選擇答案
+        function selectOption(questionIndex, option) {
+            userAnswers[questionIndex] = option;
+            
+            // 更新選項樣式
+            const questionCard = document.querySelectorAll('.question-card')[questionIndex];
+            const options = questionCard.querySelectorAll('.option');
+            
+            options.forEach(opt => opt.classList.remove('selected'));
+            options[option.charCodeAt(0) - 65].classList.add('selected');
+
+            updateDisplay();
+        }
+
+        // 更新顯示
+        function updateDisplay() {
+            const answeredCount = Object.keys(userAnswers).length;
+            const totalCount = currentQuiz.length;
+            
+            document.getElementById('current-question').textContent = 
+                `已答題: ${answeredCount} / ${totalCount}`;
+            
+            const progress = (answeredCount / totalCount) * 100;
+            document.getElementById('progress-fill').style.width = progress + '%';
+            
+            document.getElementById('submit-btn').disabled = answeredCount < totalCount;
+        }
+
+        // 提交測驗
+        function submitQuiz() {
+            let correctCount = 0;
+            const results = [];
+
+            currentQuiz.forEach((question, index) => {
+                const userAnswer = userAnswers[index];
+                const correctAnswer = question.answer;
+                const isCorrect = userAnswer === correctAnswer;
+                
+                if (isCorrect) correctCount++;
+
+                results.push({
+                    question: question,
+                    userAnswer: userAnswer,
+                    correctAnswer: correctAnswer,
+                    isCorrect: isCorrect,
+                    index: index + 1
+                });
+            });
+
+            displayResults(correctCount, results);
+        }
+
+        // 顯示結果
+        function displayResults(correctCount, results) {
+            const totalCount = currentQuiz.length;
+            const score = Math.round((correctCount / totalCount) * 100);
+
+            document.getElementById('quiz-container').style.display = 'none';
+            document.getElementById('result-container').style.display = 'block';
+
+            document.getElementById('score-display').textContent = `${score} 分`;
+            document.getElementById('result-summary').innerHTML = `
+                <p style="font-size: 18px; margin-bottom: 20px;">
+                    答對 <span style="color: #4caf50; font-weight: bold;">${correctCount}</span> 題，
+                    答錯 <span style="color: #f44336; font-weight: bold;">${totalCount - correctCount}</span> 題
+                </p>
+            `;
+
+            const detailsContainer = document.getElementById('result-details');
+            detailsContainer.innerHTML = '<h3 style="margin-bottom: 20px;">詳細解析</h3>';
+
+            results.forEach(result => {
+                const resultDiv = document.createElement('div');
+                resultDiv.className = `result-question ${result.isCorrect ? 'correct' : 'incorrect'}`;
+                
+                const optionLabels = ['A', 'B', 'C', 'D'];
+                const options = [
+                    result.question.optionA,
+                    result.question.optionB,
+                    result.question.optionC,
+                    result.question.optionD
+                ];
+
+                resultDiv.innerHTML = `
+                    <div class="result-status">
+                        第 ${result.index} 題 - 
+                        ${result.isCorrect ? 
+                            '<span class="correct-answer">✓ 答對</span>' : 
+                            '<span class="incorrect-answer">✗ 答錯</span>'}
+                    </div>
+                    <div style="margin-bottom: 10px;"><strong>題目:</strong> ${result.question.question}</div>
+                    <div style="margin-bottom: 10px;">
+                        <strong>您的答案:</strong> 
+                        <span class="${result.isCorrect ? 'correct-answer' : 'incorrect-answer'}">
+                            ${result.userAnswer || '未作答'} - ${result.userAnswer ? options[optionLabels.indexOf(result.userAnswer)] : ''}
+                        </span>
+                    </div>
+                    ${!result.isCorrect ? `
+                        <div style="margin-bottom: 10px;">
+                            <strong>正確答案:</strong> 
+                            <span class="correct-answer">
+                                ${result.correctAnswer} - ${options[optionLabels.indexOf(result.correctAnswer)]}
+                            </span>
+                        </div>
+                    ` : ''}
+                    ${result.question.explanation ? `
+                        <div class="explanation">
+                            <strong>解析:</strong> ${result.question.explanation}
+                        </div>
+                    ` : ''}
+                `;
+                
+                detailsContainer.appendChild(resultDiv);
+            });
+        }
+
+        // 重置測驗
+        function resetQuiz() {
+            document.getElementById('result-container').style.display = 'none';
+            document.getElementById('setup-container').style.display = 'block';
+            userAnswers = {};
+            currentQuiz = [];
+        }
+
+        // 工具函數：打亂陣列
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        // 頁面載入時執行
+        window.addEventListener('load', loadQuestions);
+    </script>
+</body>
+</html>
