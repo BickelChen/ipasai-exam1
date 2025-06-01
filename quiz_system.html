@@ -497,7 +497,9 @@
         // 載入題庫
         // ... (現有的變數和函數) ...
 
-// 載入題庫
+// ... (現有的變數和函數) ...
+
+		// 載入題庫
 		async function loadQuestions() {
 			document.getElementById('loading').style.display = 'block';
 
@@ -506,7 +508,7 @@
 				if (!response.ok) {
 					throw new Error(`HTTP error! status: ${response.status}`);
 				}
-				const csvData = await response.text();
+				const csvData = await response.text(); // 這裡會根據 Content-Type 或預設 UTF-8 來解碼
 				parseCSV(csvData);
 				console.log('成功從伺服器載入 question.csv');
 			} catch (error) {
@@ -517,23 +519,22 @@
 			}
 		}
 
-// 保持原有的 setupEventListeners 即可
-        
-        function parseCSV(csvData) {
-            Papa.parse(csvData, {
-                header: true,
-                skipEmptyLines: true,
-                complete: function(results) {
-                    questionsData = results.data;
-                    document.getElementById('loading').style.display = 'none';
-                    console.log('成功載入', questionsData.length, '道題目');
-                },
-                error: function(error) {
-                    console.error('解析CSV失敗:', error);
-                    document.getElementById('loading').innerHTML = '<div class="error">解析CSV失敗: ' + error.message + '</div>';
-                }
-            });
-        }
+		// ... (parseCSV 函數保持不變) ...
+		function parseCSV(csvData) {
+			Papa.parse(csvData, {
+				header: true,
+				skipEmptyLines: true,
+				complete: function(results) {
+					questionsData = results.data;
+					document.getElementById('loading').style.display = 'none';
+					console.log('成功載入', questionsData.length, '道題目');
+				},
+				error: function(error) {
+					console.error('解析CSV失敗:', error);
+					document.getElementById('loading').innerHTML = '<div class="error">解析CSV失敗: ' + error.message + '</div>';
+				}
+			});
+		}
         
         // 載入示例數據
         function loadSampleData() {
