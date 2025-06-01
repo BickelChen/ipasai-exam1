@@ -495,24 +495,29 @@
         }
         
         // 載入題庫
-        async function loadQuestions() {
-            document.getElementById('loading').style.display = 'block';
-            
-            try {
-                // 先嘗試從上傳的文件讀取
-                try {
-                    const fileData = await window.fs.readFile('question.csv', { encoding: 'utf8' });
-                    parseCSV(fileData);
-                } catch (error) {
-                    // 如果沒有上傳文件，使用示例數據
-                    console.log('未找到上傳的文件，使用示例數據');
-                    loadSampleData();
-                }
-            } catch (error) {
-                console.error('載入題庫失敗:', error);
-                document.getElementById('loading').innerHTML = '<div class="error">載入題庫失敗，請確認文件格式正確</div>';
-            }
-        }
+        // ... (現有的變數和函數) ...
+
+// 載入題庫
+		async function loadQuestions() {
+			document.getElementById('loading').style.display = 'block';
+
+			try {
+				const response = await fetch('question.csv'); // 假設 question.csv 在同一個目錄
+				if (!response.ok) {
+					throw new Error(`HTTP error! status: ${response.status}`);
+				}
+				const csvData = await response.text();
+				parseCSV(csvData);
+				console.log('成功從伺服器載入 question.csv');
+			} catch (error) {
+				console.error('從伺服器載入CSV失敗:', error);
+				document.getElementById('loading').innerHTML = '<div class="error">載入題庫失敗，請確認檔案是否存在且網路正常。</div>';
+				console.log('載入CSV失敗，使用示例數據');
+				loadSampleData(); // 載入失敗時使用示例數據
+			}
+		}
+
+// 保持原有的 setupEventListeners 即可
         
         function parseCSV(csvData) {
             Papa.parse(csvData, {
